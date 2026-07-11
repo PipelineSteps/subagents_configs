@@ -22,6 +22,36 @@ try:
   with p.open('rb') as f: tomllib.load(f)
  print('TOML validation passed')
 except ImportError: print('TOML validation skipped: Python tomllib is unavailable')
+# Preflight config before touching any destination. An exact standard header is
+# safe to recognize textually; all other existing configs require a TOML parser.
+config=home/'config.toml'; config_block=(
+ b'[features.multi_agent_v2]\n'
+ b'hide_spawn_agent_metadata = false\n'
+ b'tool_namespace = "agents"\n')
+if config.exists():
+ data=config.read_bytes()
+ import re
+ exact_header=re.compile(r'^\s*\[\s*features\s*\.\s*multi_agent_v2\s*\]\s*(?:#.*)?$')
+ def has_exact_header(raw):
+  if b'"""' in raw or b"'''" in raw: return False
+  try: text=raw.decode('utf-8')
+  except UnicodeDecodeError: return False
+  return any(exact_header.fullmatch(line) for line in text.splitlines())
+ if has_exact_header(data):
+  config_has_table=True
+ else:
+  try:
+   try: import tomllib as toml
+   except ImportError: import tomli as toml
+  except ImportError:
+   raise SystemExit('error: cannot inspect config.toml without Python 3.11+ tomllib or tomli; no files were changed')
+  try:
+   parsed=toml.loads(data.decode('utf-8'))
+  except Exception as e:
+   raise SystemExit(f'error: config.toml is invalid TOML ({e}); no files were changed')
+  features=parsed.get('features')
+  config_has_table=isinstance(features,dict) and 'multi_agent_v2' in features
+else: data=b''; config_has_table=False
 home.mkdir(parents=True,exist_ok=True)
 current={}
 def install(s,t,k):
@@ -36,6 +66,19 @@ def install(s,t,k):
  current[k]={'target':str(t),'installed_hash':sh,'ownership':own,'backup':bp}
 for s in sorted((src/'agents').glob('*.toml')): install(s,agents/s.name,'agents/'+s.name)
 install(src/'rules/SUBAGENT_ROUTING.md',routing,'routing')
+# Enable the multi-agent feature only when the user's config does not define it.
+# This file is intentionally not recorded in installer state: uninstall leaves
+# the block in place because ownership cannot be proven safely after edits.
+if config.exists():
+ if not config_has_table:
+  backup(config)
+  config.write_bytes(data+(b'' if not data or data.endswith(b'\n') else b'\n')+config_block)
+  print('updated:',config)
+ else: print('unchanged:',config)
+else:
+ config.parent.mkdir(parents=True,exist_ok=True)
+ config.write_bytes(config_block)
+ print('created:',config)
 # Remove package-owned files no longer present in this checkout, but never touch modified files.
 for key,item in oldstate.get('files',{}).items():
  if key in current: continue
