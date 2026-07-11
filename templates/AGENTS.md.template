@@ -1,0 +1,10 @@
+# Optional global Codex instructions
+
+Keep this file small and import the package routing rules from the installer:
+
+```text
+@/absolute/path/to/.codex/SUBAGENT_ROUTING.md
+```
+
+`install.sh` writes the correct absolute path in a managed block in
+`$CODEX_HOME/AGENTS.md`; this template is provided for manual setups.
