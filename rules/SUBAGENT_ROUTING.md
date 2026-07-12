@@ -18,9 +18,9 @@ Agent identity and display labels:
 
 - Select a custom agent by its exact agent `name`, not by inventing a task alias.
 - A task/thread label or generated nickname is presentation metadata; it does not prove which custom role, model, or reasoning effort was used.
-- Before every spawn, announce the selected custom agent name, configured model, and configured reasoning effort in a user-visible progress message. Use the format: `Delegating to custom <agent> — <model>, <reasoning> reasoning.`
+- Each custom agent announces itself in a user-visible progress message at the start of its assigned work. The orchestrator does not announce on its behalf.
 - Read model and reasoning values from the active custom-agent configuration or runtime metadata; do not infer them from the task label or from a requested override that the custom role may ignore.
-- If the spawned agent's runtime metadata differs from the pre-spawn announcement, correct the user-visible record immediately.
+- If runtime metadata differs from the agent's announcement, correct the user-visible record immediately.
 - In the final task summary, list each spawned custom agent with its actual model and reasoning effort when delegation materially contributed to the result.
 - If runtime metadata shows no custom role (for example, `agent_role` is null), describe it as a generic subagent rather than attributing a custom-agent personality or configuration to it.
 
