@@ -108,7 +108,10 @@ foreach ($source in $agentSources) {
 Install-ManagedFile $routingSource $RoutingPath 'routing'
 
 $block = "$Begin`r`n@$RoutingPath`r`n$End"
-$oldAgentsBytes = if (Test-Path -LiteralPath $AgentsPath -PathType Leaf) { [IO.File]::ReadAllBytes($AgentsPath) } else { [byte[]]@() }
+[byte[]]$oldAgentsBytes = @()
+if (Test-Path -LiteralPath $AgentsPath -PathType Leaf) {
+    $oldAgentsBytes = [IO.File]::ReadAllBytes($AgentsPath)
+}
 $oldAgents = [Text.Encoding]::UTF8.GetString($oldAgentsBytes)
 $start = $oldAgents.IndexOf($Begin, [StringComparison]::Ordinal)
 $originalSegment = ''
