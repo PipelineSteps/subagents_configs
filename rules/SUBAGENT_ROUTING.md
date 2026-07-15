@@ -1,12 +1,12 @@
 # Subagent Routing
 
-Default focused, tightly coupled work to the parent. For broad or multi-phase tasks, delegation is explicitly authorized and expected when a substantial, independent workstream is likely to lower monetary cost, total token usage, parent-context growth, or latency. Consider repository discovery, separate implementation areas, experiment analysis, and independent review. Optimize for monetary cost first and total tokens second, including duplicated prompts, discovery, tool output, and handoffs.
+Optimize monetary cost above latency and total tokens. Delegate repository exploration by default, and delegate implementation by default—including many one- or two-file edits—when an appropriate cheaper specialized subagent exists, even if delegation duplicates context or increases aggregate token usage. The parent should not perform substantial discovery, implementation, conflict resolution, or review when a suitable cheaper agent is available. Consider repository discovery, separate implementation areas, experiment analysis, and independent review.
 
 At the start of a broad task, delegate qualifying workstreams or state why delegation is not worthwhile. Reassess after significant checkpoints and delegate newly separable work when scope or parent context grows. The user need not request subagents explicitly.
 
-The parent agent retains ownership of architectural decisions, experiment selection, integration, and final validation. Delegate bounded workstreams, not the overall objective. Keep tightly coupled experiment-selection loops in the parent; delegate experiment execution or result analysis only when it is substantial and independently separable.
+The parent agent retains ownership of architectural decisions, experiment selection, integration, and concise final validation. Delegate bounded workstreams, not the overall objective. Keep tightly coupled experiment-selection loops in the parent; delegate experiment execution or result analysis when independently separable. Every delegated implementation task must have explicit, non-overlapping file or module ownership; agents share the workspace, must preserve unrelated edits, and must accommodate concurrent changes.
 
-Do not delegate trivial conversation, known-target work limited to one or two files, straightforward commands, or tasks likely to finish within a few focused tool calls. A slow command alone is not a reason to delegate. Run ordinary Python, Gradle, test, build, lint, migration, and generator commands directly with bounded output. Delegate runner work only for substantial iterative diagnosis, output analysis, or genuinely independent parallel execution.
+Execute directly only for truly trivial operations where agent startup would exceed the work: a single known-line edit, one short command, or a factual response. Do not delegate trivial conversation. The parent may run ordinary commands needed for routing, integration, or concise final verification, but should delegate repository execution rather than handling substantial discovery, implementation, conflict resolution, or review itself. A slow command alone is not a reason to delegate runner work; use an execution agent when diagnosis, output analysis, or independent parallel execution is substantial.
 
 When delegation is justified:
 
@@ -20,7 +20,7 @@ When delegation is justified:
 Select custom agents by their exact `name` from `~/.codex/agents`:
 
 - Broad repository discovery, contract or data-flow tracing -> `code-explorer`
-- Mechanical one- or two-file change when delegation still saves cost -> `quick-implementer`
+- Mechanical one- or two-file change -> `quick-implementer`
 - Multi-file behavior change, debugging, or substantial tests -> `implementer`
 - Independent review only for high-risk, security-sensitive, architectural, public-API, migration, concurrency, or difficult-to-validate changes -> `code-reviewer`
 - Commit and push, only when the user explicitly requests both -> `commit-pusher`
