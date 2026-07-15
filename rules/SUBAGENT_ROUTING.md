@@ -1,31 +1,54 @@
 # Subagent Routing
 
-Optimize monetary cost above latency and total tokens. Delegate repository exploration by default, and delegate implementation by default—including many one- or two-file edits—when an appropriate cheaper specialized subagent exists, even if delegation duplicates context or increases aggregate token usage. The parent should not perform substantial discovery, implementation, conflict resolution, or review when a suitable cheaper agent is available. Consider repository discovery, separate implementation areas, experiment analysis, and independent review.
+For each new user request, the active parent Codex session silently classifies the work before acting. The parent remains the coordinator: it understands the complete request, captures constraints and acceptance criteria, decides whether delegation is useful, sequences specialists, resolves conflicts, inspects the final result, verifies validation, and reports back to the user.
 
-At the start of a broad task, delegate qualifying workstreams or state why delegation is not worthwhile. Reassess after significant checkpoints and delegate newly separable work when scope or parent context grows. The user need not request subagents explicitly.
+Do not create or rely on a permanent orchestrator subagent. The parent handles work directly unless a specialist offers a clear benefit.
 
-The parent agent retains ownership of architectural decisions, experiment selection, integration, and concise final validation. Delegate bounded workstreams, not the overall objective. Keep tightly coupled experiment-selection loops in the parent; delegate experiment execution or result analysis when independently separable. Every delegated implementation task must have explicit, non-overlapping file or module ownership; agents share the workspace, must preserve unrelated edits, and must accommodate concurrent changes.
+## Classification
 
-Execute directly only for truly trivial operations where agent startup would exceed the work: a single known-line edit, one short command, or a factual response. Do not delegate trivial conversation. The parent may run ordinary commands needed for routing, integration, or concise final verification, but should delegate repository execution rather than handling substantial discovery, implementation, conflict resolution, or review itself. A slow command alone is not a reason to delegate runner work; use an execution agent when diagnosis, output analysis, or independent parallel execution is substantial.
+Consider intent, scope, coupling, uncertainty, risk, required permissions, and validation needs.
 
-When delegation is justified:
+- Intent: answer, plan, inspect, trace behavior, diagnose, implement, fix, refactor, test, review, stage, commit, push, or mixed workflow.
+- Scope and coupling: trivial vs substantial, known vs unknown code, localized vs cross-cutting, tightly coupled vs safely separable.
+- Uncertainty: targeted lookup, broad discovery, execution tracing, architectural investigation, or unresolved assumptions.
+- Risk: user-visible behavior, public API compatibility, authentication or authorization, secrets, security boundaries, persistence, migrations, destructive actions, concurrency, dependencies, deployment, rollback difficulty, or weak validation.
+- Permissions: read-only, workspace write, network, command execution, Git staging, Git commit, Git push, or destructive operations.
+- Validation: source inspection, targeted tests, linting, formatting, type checking, build, integration tests, manual reproduction, broad suites, or independent review.
 
+Optimize in this order unless a project `AGENTS.md` says otherwise: correctness and safety, minimum necessary permissions, avoiding unnecessary delegation, monetary cost, total tokens, then latency.
+
+## Default Routing
+
+Prefer this order:
+
+1. Parent handles the task directly.
+2. Parent delegates one clearly bounded specialist task.
+3. Parent coordinates a multi-stage workflow only when needed.
+
+Use the parent directly for questions, explanations, planning, trivial repository operations, small edits where delegation adds overhead, tightly coupled work best handled in one context, final integration, and final reporting. A matching subagent is not enough reason to delegate.
+
+Use `code-explorer` when relevant code locations are unclear, execution behavior must be traced, repository-wide discovery is needed, architecture or impact must be mapped, or read-only investigation would consume substantial parent context. Do not use it for a simple symbol lookup the parent can perform quickly.
+
+Use `quick-implementer` when the change is well defined, behavior and affected area are understood, risk is low, implementation is localized, validation is narrow and clear, and escalation is possible if scope expands. Do not choose it only because the expected file count is small.
+
+Use `implementer` for meaningful feature work, nontrivial bug diagnosis or fixes, multiple related components, test design, refactoring, behavioral integration, or work beyond `quick-implementer` scope.
+
+Spawn a separate `code-reviewer` subagent when the user explicitly asks for independent review, or when the diff affects security-sensitive behavior, authentication or authorization, public APIs or compatibility, concurrency or transactions, migrations or persistent data, architecture, difficult-to-validate behavior, or a substantial/unusually risky change. The writing agent's self-check is not an independent review. If the custom agent cannot start, report that failure and use an independent read-only fallback agent when available. The parent may perform ordinary requested code review directly when independence is not requested and no risk trigger applies. Do not run `code-reviewer` automatically for every routine edit.
+
+Use `commit-pusher` only when the user explicitly requests staging, commit, push, or a combination of those Git actions. Implementation must be complete, intended files identified, validation adequate, the final diff inspected, and unrelated or sensitive files excluded. Never infer commit or push authorization from requests to implement, fix, finish, complete, or deploy code.
+
+## Delegation Rules
+
+When delegation is useful, keep it bounded and independently verifiable.
+
+- Use one specialist unless independent workstreams clearly justify more.
+- Prefer parallel read-only investigation over parallel writing.
+- Do not allow multiple agents to edit overlapping files concurrently.
+- Do not review a diff while another agent is still changing it.
+- Do not run `commit-pusher` concurrently with writing or review.
+- Assign explicit, non-overlapping file or module ownership for parallel implementation.
+- Tell subagents the workspace is shared and unrelated changes must be preserved.
+- Ask for concise structured results: findings, file/symbol references, changes made, validation performed, unresolved concerns, and recommended next action.
 - Use `fork_turns="none"` unless parent conversation context is genuinely required.
-- Prefer one subagent per task. Add more only for non-overlapping work that materially saves time; never fill concurrency slots automatically.
-- For broad exploration with multiple independent discovery questions, run `code-explorer` agents in parallel. Give each explorer a distinct concern or repository boundary and require non-overlapping, decision-ready reports. Prefer two explorers; add more only when the workstreams are clearly independent. Keep exploration sequential when one finding determines the next investigation or when agents would search substantially the same files.
-- Reuse agents, completed discovery, and cited evidence for related follow-ups.
-- Give task-local prompts and request decision-ready reports of at most 300 words: findings, evidence locations, risks, and next action. Exclude narration, raw dumps, and repeated context.
-- For parallel implementation, assign explicit, non-overlapping file or module ownership in every subagent prompt. State that the workspace is shared, other agents may edit concurrently, and each agent must preserve and accommodate others' changes.
-- Trust cited findings unless verification is necessary. For weak or failed results, retry with a narrower task before switching roles or repeating discovery.
 
-Select custom agents by their exact `name` from `~/.codex/agents`:
-
-- Broad repository discovery, contract or data-flow tracing -> `code-explorer`
-- Mechanical one- or two-file change -> `quick-implementer`
-- Multi-file behavior change, debugging, or substantial tests -> `implementer`
-- Independent review only for high-risk, security-sensitive, architectural, public-API, migration, concurrency, or difficult-to-validate changes -> `code-reviewer`
-- Commit and push, only when the user explicitly requests both -> `commit-pusher`
-
-Do not use a fixed command-count threshold for exploration. Use `code-explorer` only when discovery is expected to cross several files, require meaningful tracing, or add substantial raw evidence to the parent context. Do not use it to reread known files.
-
-Use the cheapest role and reasoning effort that can reliably complete the work. Do not substitute built-in generic agents when the matching custom agent is available. Avoid parallel write-heavy delegation.
+The parent must still inspect and validate the final outcome, even when no independent review is used.
